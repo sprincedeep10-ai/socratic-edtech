@@ -93,3 +93,56 @@ This boilerplate gives you:
 ---
 
 Ready for the next layer: real LLM integration, gamification engine, advanced analytics, auth, etc.
+
+## Deploy (GitHub + Render) — Recommended for now
+
+We are using **GitHub for source** + **Render for hosting** (free tier friendly for Python/FastAPI).
+
+### 1. Push to GitHub (first time)
+
+```bash
+# On your machine (you are here)
+cd /Users/prince/socratic-edtech-platform
+
+# Create a new repo on GitHub.com first (e.g. "socratic-edtech")
+# Then run:
+git remote add origin https://github.com/YOUR_USERNAME/socratic-edtech.git
+git branch -M main
+git push -u origin main
+```
+
+### 2. Deploy Backend on Render (easiest)
+
+1. Go to https://render.com → Sign up with GitHub
+2. Click **"New +"** → **Web Service**
+3. Connect your GitHub repo `socratic-edtech`
+4. Render should auto-detect the `render.yaml` we added
+5. Settings (Render will mostly fill these):
+   - **Name**: socratic-edtech-backend (or anything)
+   - **Environment**: Python 3
+   - **Build Command**: (already in render.yaml)
+   - **Start Command**: (already in render.yaml)
+6. Click **Create Web Service**
+
+Render will:
+- Install requirements
+- Run `bootstrap_db.py` (creates HK bilingual tables + demo data)
+- Start the FastAPI server
+
+Your backend will be live at something like:
+`https://socratic-edtech-backend.onrender.com`
+
+Visit `/docs` to see the API.
+
+### 3. Later: Deploy Streamlit apps
+
+You can add separate Render services for the Streamlit prototypes (student/teacher/parent) using the same repo.
+
+For now the backend + API is the core.
+
+### Notes
+- SQLite on Render free tier is fine for prototypes (data resets on deploy sometimes).
+- Later we can switch to Render Postgres (free) — just change DATABASE_URL.
+- All HK bilingual fields (English + Cantonese) are already in the models and seed data.
+
+Ready? Push to GitHub then hit deploy on Render.
