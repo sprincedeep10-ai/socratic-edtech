@@ -158,3 +158,31 @@ Once you push to GitHub and create the service on Render, your backend will be a
 
 The first deploy can take 2-5 minutes. 
 
+
+## Deployment Status (2026-08-15)
+
+✅ **Backend deployed successfully on Render (free tier)**
+
+- Service: `socratic-edtech-backend`
+- Commit: `2c3df7b`
+- URL: https://socratic-edtech-backend.onrender.com
+- Health: `/health`
+- Docs: `/docs`
+
+**Working start command:**
+```
+cd backend && python bootstrap_db.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+**HK Bilingual data seeded:**
+- Student: Alex Chan (陳偉豪), Sham Shui Po
+- Cognitive tags with `name_en` + `name_yue`
+- Parent micro-actions with `action_text_en` + `action_text_yue`
+
+**Key fixes applied:**
+- Python 3.11.9 + `--only-binary` for pydantic-core
+- Added missing `MessageCreate` + `ParentSummaryOut`
+- Migrated to Pydantic v2 (`model_validate`)
+- Aligned CRUD + routers with current bilingual models
+
+Next session: continue with Streamlit apps or teacher/parent features.
