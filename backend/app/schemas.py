@@ -45,6 +45,10 @@ class ParentMicroActionDeliveryOut(BaseModel):
     viewed_at: Optional[datetime]
     completed_at: Optional[datetime]
 
+class MessageCreate(BaseModel):
+    content: str
+    language: str = "en"
+
 class MessageOut(BaseModel):
     id: int
     role: str
@@ -61,3 +65,9 @@ class ChatResponse(BaseModel):
     message: MessageOut
     suggested_next_question: Optional[str] = None
     detected_bottlenecks: List[str] = []
+
+# For parent summaries
+class ParentSummaryOut(BaseModel):
+    summary_text: str
+    micro_actions: List[str]
+    generated_at: str

@@ -8,13 +8,7 @@ router = APIRouter()
 @router.get("/gaps/{student_id}", response_model=List[schemas.LearningGapOut])
 def get_gaps(student_id: int, db: Session = Depends(database.get_db)):
     gaps = crud.get_student_gaps(db, student_id)
-    return [
-        schemas.LearningGapOut(
-            bottleneck_tag=g.bottleneck_tag,
-            severity=g.severity,
-            evidence_count=g.evidence_count
-        ) for g in gaps
-    ]
+    return [schemas.LearningGapOut.model_validate(g) for g in gaps]
 
 @router.get("/zero-click-actions/{student_id}")
 def get_zero_click_actions(student_id: int, db: Session = Depends(database.get_db)):
@@ -22,10 +16,11 @@ def get_zero_click_actions(student_id: int, db: Session = Depends(database.get_d
     actions = []
     for g in gaps:
         if g.severity > 0.6:
+            tag_name = getattr(g.tag, 'name_en', g.tag_id) if g.tag else g.tag_id
             actions.append({
-                "action": f"Assign targeted mini-lesson on {g.bottleneck_tag.replace('_', ' ')}",
+                "action": f"Assign targeted mini-lesson on {tag_name}",
                 "priority": "high",
-                "tag": g.bottleneck_tag
+                "tag": tag_name
             })
     if not actions:
         actions.append({"action": "Student is progressing well. Consider enrichment challenge.", "priority": "low"})

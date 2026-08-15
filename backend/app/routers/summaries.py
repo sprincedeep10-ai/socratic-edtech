@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from .. import crud, database, models
+from .. import crud, database
 from ..schemas import ParentSummaryOut
 from typing import List
 
@@ -18,11 +18,11 @@ def get_parent_summary(student_id: int, db: Session = Depends(database.get_db)):
         )
 
     top_gap = max(gaps, key=lambda g: g.severity)
-    summary = f"Your child is showing signs of {top_gap.bottleneck_tag.replace('_', ' ')}. " \
-              "They may benefit from more 'why' questions during homework."
+    tag_name = getattr(top_gap.tag, 'name_en', str(top_gap.tag_id)) if top_gap.tag else str(top_gap.tag_id)
+    summary = f"Your child is showing signs of {tag_name}. They may benefit from more 'why' questions during homework."
 
     micro_actions = [
-        f"Ask them to explain one concept in their own words tonight.",
+        "Ask them to explain one concept in their own words tonight.",
         "Try a 5-minute 'teach me' game on the topic."
     ]
 

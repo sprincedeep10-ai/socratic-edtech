@@ -29,7 +29,7 @@ def send_student_message(payload: schemas.MessageCreate, db: Session = Depends(d
     )
 
     return schemas.ChatResponse(
-        message=schemas.MessageOut.from_orm(assistant_msg),
+        message=schemas.MessageOut.model_validate(assistant_msg),
         suggested_next_question="What do you think would happen if we changed X?",
         detected_bottlenecks=ai_response["bottleneck_tags"]
     )
@@ -37,4 +37,4 @@ def send_student_message(payload: schemas.MessageCreate, db: Session = Depends(d
 @router.get("/history/{student_id}", response_model=list[schemas.MessageOut])
 def get_chat_history(student_id: int, db: Session = Depends(database.get_db)):
     conv = crud.get_or_create_conversation(db, student_id)
-    return [schemas.MessageOut.from_orm(m) for m in conv.messages]
+    return [schemas.MessageOut.model_validate(m) for m in conv.messages]

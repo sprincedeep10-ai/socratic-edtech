@@ -13,10 +13,17 @@ BOTTLENECK_LIBRARY = [
     "weak_metacognition"
 ]
 
-def get_or_create_student(db: Session, name: str = "Alex Rivera"):
+def get_or_create_student(db: Session, name: str = "Alex Chan"):
     student = db.query(models.User).filter_by(name=name, role="student").first()
     if not student:
-        student = models.User(name=name, role="student", email="alex@example.com")
+        student = models.User(
+            name=name, 
+            cantonese_name="陳偉豪",
+            role="student", 
+            email="alex@example.com",
+            school_district="Sham Shui Po",
+            language_preference="bilingual"
+        )
         db.add(student)
         db.commit()
         db.refresh(student)
@@ -65,7 +72,7 @@ def generate_socratic_response(student_msg: str, previous_tags: List[str]) -> di
     tags = detect_bottlenecks(student_msg)
     strategy = "clarify_assumption" if "conceptual_misunderstanding" in tags else "probe_reasoning"
 
-    reply = f"That's interesting. What makes you think that? Can you give me an example of when that happens?"
+    reply = "That's interesting. What makes you think that? Can you give me an example of when that happens?"
 
     if "procedural_gap" in tags:
         reply = "Walk me through the first step you would take. What do you think comes next?"
@@ -77,13 +84,30 @@ def generate_socratic_response(student_msg: str, previous_tags: List[str]) -> di
     }
 
 def update_learning_gaps(db: Session, student_id: int, tags: List[str]):
-    for tag in tags:
-        gap = db.query(models.LearningGap).filter_by(student_id=student_id, bottleneck_tag=tag).first()
+    # Find or create a default tag for each (simplified for prototype)
+    for tag_name in tags:
+        tag = db.query(models.CognitiveErrorTag).filter_by(name_en=tag_name).first()
+        if not tag:
+            tag = models.CognitiveErrorTag(
+                name_en=tag_name,
+                name_yue=tag_name,
+                category="general"
+            )
+            db.add(tag)
+            db.commit()
+            db.refresh(tag)
+
+        gap = db.query(models.LearningGap).filter_by(student_id=student_id, tag_id=tag.id).first()
         if gap:
             gap.evidence_count += 1
             gap.severity = min(1.0, gap.severity + 0.1)
         else:
-            gap = models.LearningGap(student_id=student_id, bottleneck_tag=tag, severity=0.6, evidence_count=1)
+            gap = models.LearningGap(
+                student_id=student_id, 
+                tag_id=tag.id, 
+                severity=0.6, 
+                evidence_count=1
+            )
             db.add(gap)
     db.commit()
 
