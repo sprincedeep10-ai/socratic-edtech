@@ -146,3 +146,15 @@ For now the backend + API is the core.
 - All HK bilingual fields (English + Cantonese) are already in the models and seed data.
 
 Ready? Push to GitHub then hit deploy on Render.
+
+## Your Live URL (after you deploy)
+
+Once you push to GitHub and create the service on Render, your backend will be available at:
+
+**https://socratic-edtech-backend.onrender.com**
+
+- API docs: https://socratic-edtech-backend.onrender.com/docs
+- Health: https://socratic-edtech-backend.onrender.com/health
+
+The first deploy can take 2-5 minutes. 
+
