@@ -1,12 +1,11 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import List, Optional
 from datetime import datetime
 
 # Bilingual support
-class Language(str):
-    pass
 
 class CognitiveErrorTagOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     name_en: str
     name_yue: str
@@ -15,6 +14,7 @@ class CognitiveErrorTagOut(BaseModel):
     description_yue: Optional[str] = None
 
 class LearningGapOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     student_id: int
     tag_id: int
@@ -23,6 +23,7 @@ class LearningGapOut(BaseModel):
     tag: Optional[CognitiveErrorTagOut] = None
 
 class TeacherInterventionLogOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     teacher_id: int
     student_id: int
@@ -34,6 +35,7 @@ class TeacherInterventionLogOut(BaseModel):
     timestamp: datetime
 
 class ParentMicroActionDeliveryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     parent_id: int
     student_id: int
@@ -50,6 +52,7 @@ class MessageCreate(BaseModel):
     language: str = "en"
 
 class MessageOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     role: str
     content: str
@@ -58,16 +61,15 @@ class MessageOut(BaseModel):
     bottleneck_tags: Optional[list] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
-
 class ChatResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     message: MessageOut
     suggested_next_question: Optional[str] = None
     detected_bottlenecks: List[str] = []
 
 # For parent summaries
 class ParentSummaryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     summary_text: str
     micro_actions: List[str]
     generated_at: str

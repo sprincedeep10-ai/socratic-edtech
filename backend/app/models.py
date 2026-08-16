@@ -23,11 +23,19 @@ class User(Base):
     language_preference = Column(String, default=LanguagePreference.BILINGUAL.value)
     school_district = Column(String, nullable=True)  # e.g. "Sham Shui Po", "Kowloon City", "New Territories"
 
-    # Relationships
+    # Relationships - specify foreign_keys where table has multiple FKs to users
     conversations = relationship("Conversation", back_populates="student")
     learning_gaps = relationship("LearningGap", back_populates="student")
-    interventions = relationship("TeacherInterventionLog", back_populates="student")
-    micro_actions = relationship("ParentMicroActionDelivery", back_populates="student")
+    interventions = relationship(
+        "TeacherInterventionLog", 
+        foreign_keys="TeacherInterventionLog.student_id", 
+        back_populates="student"
+    )
+    micro_actions = relationship(
+        "ParentMicroActionDelivery", 
+        foreign_keys="ParentMicroActionDelivery.student_id", 
+        back_populates="student"
+    )
 
 class CognitiveErrorTag(Base):
     __tablename__ = "cognitive_error_tags"
@@ -98,6 +106,7 @@ class TeacherInterventionLog(Base):
     notes = Column(Text, nullable=True)
 
     student = relationship("User", foreign_keys=[student_id], back_populates="interventions")
+    teacher = relationship("User", foreign_keys=[teacher_id])
     tag = relationship("CognitiveErrorTag", back_populates="interventions")
 
 class ParentMicroActionDelivery(Base):

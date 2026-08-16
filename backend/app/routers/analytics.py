@@ -16,11 +16,17 @@ def get_zero_click_actions(student_id: int, db: Session = Depends(database.get_d
     actions = []
     for g in gaps:
         if g.severity > 0.6:
-            tag_name = getattr(g.tag, 'name_en', g.tag_id) if g.tag else g.tag_id
+            tag = g.tag
+            name_en = getattr(tag, 'name_en', None) if tag else None
+            name_yue = getattr(tag, 'name_yue', None) if tag else None
+            tag_name = name_en or str(g.tag_id)
+            tag_display = f"{name_en} ({name_yue})" if name_yue else tag_name
             actions.append({
-                "action": f"Assign targeted mini-lesson on {tag_name}",
+                "action": f"Assign targeted mini-lesson on {tag_display}",
                 "priority": "high",
-                "tag": tag_name
+                "tag": tag_name,
+                "tag_en": name_en,
+                "tag_yue": name_yue
             })
     if not actions:
         actions.append({"action": "Student is progressing well. Consider enrichment challenge.", "priority": "low"})

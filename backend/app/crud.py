@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from . import models, schemas
 from typing import List, Optional
 import random
@@ -68,17 +68,20 @@ def detect_bottlenecks(text: str) -> List[str]:
     return list(set(tags))
 
 def generate_socratic_response(student_msg: str, previous_tags: List[str]) -> dict:
-    """Prototype Socratic reply generator."""
+    """Prototype Socratic reply generator. Now bilingual (English + Cantonese/Yue) for HK students."""
     tags = detect_bottlenecks(student_msg)
     strategy = "clarify_assumption" if "conceptual_misunderstanding" in tags else "probe_reasoning"
 
-    reply = "That's interesting. What makes you think that? Can you give me an example of when that happens?"
+    reply_en = "That's interesting. What makes you think that? Can you give me an example of when that happens?"
+    reply_yue = "有意思。你點解咁諗？可唔可以俾個例子我聽下？"
 
     if "procedural_gap" in tags:
-        reply = "Walk me through the first step you would take. What do you think comes next?"
+        reply_en = "Walk me through the first step you would take. What do you think comes next?"
+        reply_yue = "一步一步講俾我聽。你覺得下一步係乜？"
 
+    # Return combined for prototype; real version would pick based on user language_preference
     return {
-        "content": reply,
+        "content": f"{reply_en}\n\n[粵語] {reply_yue}",
         "socratic_strategy": strategy,
         "bottleneck_tags": tags
     }
@@ -104,7 +107,7 @@ def update_learning_gaps(db: Session, student_id: int, tags: List[str]):
         else:
             gap = models.LearningGap(
                 student_id=student_id, 
-                tag_id=tag.id, 
+                tag_id=tag.id,
                 severity=0.6, 
                 evidence_count=1
             )
@@ -112,4 +115,9 @@ def update_learning_gaps(db: Session, student_id: int, tags: List[str]):
     db.commit()
 
 def get_student_gaps(db: Session, student_id: int):
-    return db.query(models.LearningGap).filter_by(student_id=student_id).all()
+    """Load with tag relationship for bilingual display."""
+    return db.query(models.LearningGap).options(joinedload(models.LearningGap.tag)).filter_by(student_id=student_id).all()
+
+def get_parent_micro_actions(db: Session, student_id: int):
+    """Fetch the seeded bilingual parent micro-actions."""
+    return db.query(models.ParentMicroActionDelivery).filter_by(student_id=student_id).all()

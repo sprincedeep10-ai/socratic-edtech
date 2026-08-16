@@ -130,7 +130,7 @@ Render will:
 - Start the FastAPI server
 
 Your backend will be live at something like:
-`https://socratic-edtech-backend.onrender.com`
+`https://socratic-edtech.onrender.com`
 
 Visit `/docs` to see the API.
 
@@ -151,10 +151,10 @@ Ready? Push to GitHub then hit deploy on Render.
 
 Once you push to GitHub and create the service on Render, your backend will be available at:
 
-**https://socratic-edtech-backend.onrender.com**
+**https://socratic-edtech.onrender.com**
 
-- API docs: https://socratic-edtech-backend.onrender.com/docs
-- Health: https://socratic-edtech-backend.onrender.com/health
+- API docs: https://socratic-edtech.onrender.com/docs
+- Health: https://socratic-edtech.onrender.com/health
 
 The first deploy can take 2-5 minutes. 
 
@@ -165,7 +165,7 @@ The first deploy can take 2-5 minutes.
 
 - Service: `socratic-edtech-backend`
 - Commit: `2c3df7b`
-- URL: https://socratic-edtech-backend.onrender.com
+- URL: https://socratic-edtech.onrender.com
 - Health: `/health`
 - Docs: `/docs`
 
@@ -186,3 +186,25 @@ cd backend && python bootstrap_db.py && uvicorn app.main:app --host 0.0.0.0 --po
 - Aligned CRUD + routers with current bilingual models
 
 Next session: continue with Streamlit apps or teacher/parent features.
+
+## 2026-08-16 Continuation — Bilingual UI Polish + Fixes
+
+- Fixed SQLAlchemy ambiguous FK relationships in models (multi-FK to users table for teacher/parent logs)
+- Fixed DB path resolution in database.py (now consistently resolves to project_root/data/ from any cwd)
+- Updated crud with bilingual generate_socratic_response (EN + 粵語) and get_parent_micro_actions + joinedload
+- Enhanced analytics and summaries routers to return bilingual tag names and seeded actions
+- Reworked all three Streamlit apps:
+  - Sidebar to switch Deployed Render vs Local
+  - Bilingual titles, captions, tags, actions (name_en / name_yue)
+  - Teacher dashboard now correctly parses nested tag object from LearningGapOut
+  - Parent shows real seeded micro-action bilingual text
+  - Student chat supports language pref and shows bilingual responses
+- Added Pydantic model_config from_attributes=True for proper ORM -> schema
+- Verified end-to-end with TestClient: gaps, bilingual tags, parent actions, chat all working
+
+**Next:** Real LLM (e.g. via Grok or local), gamification, more students, auth, better analytics visuals.
+
+**Live backend (may be sleeping on free tier):**
+https://socratic-edtech.onrender.com
+- /docs for interactive API
+- Visit in browser first to wake if needed (can take ~30-60s)

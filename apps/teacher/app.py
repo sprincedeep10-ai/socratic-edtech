@@ -3,46 +3,80 @@ import httpx
 import pandas as pd
 
 st.set_page_config(page_title="Teacher Dashboard", layout="wide")
-st.title("📊 Teacher Intelligence Dashboard")
-st.caption("Deep learning-gap analytics + zero-click actions")
+st.title("📊 Teacher Intelligence Dashboard — 教師智能儀表板")
+st.caption("Deep learning-gap analytics + zero-click recommended actions (bilingual)")
 
-API_URL = "http://localhost:8000"
+# Config
+DEFAULT_DEPLOYED = "https://socratic-edtech.onrender.com"
+DEFAULT_LOCAL = "http://localhost:8000"
+
+with st.sidebar:
+    env = st.selectbox("Backend", ["Deployed (Render)", "Local"], index=0)
+    API_URL = DEFAULT_DEPLOYED if "Deployed" in env else DEFAULT_LOCAL
+    st.caption(f"Using: {API_URL}")
+    if st.button("Refresh Data"):
+        st.rerun()
+
+student_id = 1  # Alex for now
 
 col1, col2 = st.columns([2, 1])
 
 with col1:
-    st.subheader("Learning Gaps — Alex Rivera")
+    st.subheader("Learning Gaps — Alex Chan (陳偉豪)")
     try:
-        resp = httpx.get(f"{API_URL}/analytics/gaps/1", timeout=10)
+        resp = httpx.get(f"{API_URL}/analytics/gaps/{student_id}", timeout=30)
         gaps = resp.json()
         if gaps:
-            df = pd.DataFrame(gaps)
+            # Normalize for display (handle nested tag)
+            rows = []
+            for g in gaps:
+                tag = g.get("tag") or {}
+                rows.append({
+                    "tag_id": g.get("tag_id"),
+                    "bottleneck_en": tag.get("name_en") or g.get("tag_id"),
+                    "bottleneck_yue": tag.get("name_yue", ""),
+                    "severity": round(g.get("severity", 0), 2),
+                    "evidence_count": g.get("evidence_count", 1),
+                    "context": g.get("context_notes", "")
+                })
+            df = pd.DataFrame(rows)
             st.dataframe(df, use_container_width=True)
-            st.bar_chart(df.set_index("bottleneck_tag")["severity"])
+
+            # Bar chart on severity
+            if not df.empty:
+                chart_df = df.set_index("bottleneck_en")["severity"]
+                st.bar_chart(chart_df)
         else:
             st.info("No significant gaps detected yet.")
-    except Exception:
-        st.warning("Backend not reachable. Showing demo data.")
+    except Exception as e:
+        st.warning(f"Backend not reachable ({e}). Showing demo bilingual data.")
         demo = [
-            {"bottleneck_tag": "conceptual_misunderstanding", "severity": 0.82, "evidence_count": 7},
-            {"bottleneck_tag": "prior_knowledge_gap", "severity": 0.65, "evidence_count": 4},
+            {"tag_id": 1, "bottleneck_en": "Fraction Expansion Gaps", "bottleneck_yue": "分數擴展缺口", "severity": 0.82, "evidence_count": 7, "context": "Seen in chat and worksheet Q4-7"},
+            {"tag_id": 3, "bottleneck_en": "Prior Knowledge Gap - Multiples", "bottleneck_yue": "倍數前備知識缺口", "severity": 0.65, "evidence_count": 4, "context": ""},
         ]
-        st.dataframe(pd.DataFrame(demo))
+        df = pd.DataFrame(demo)
+        st.dataframe(df, use_container_width=True)
+        st.bar_chart(df.set_index("bottleneck_en")["severity"])
 
 with col2:
     st.subheader("Zero-Click Action Prompts")
     try:
-        resp = httpx.get(f"{API_URL}/analytics/zero-click-actions/1", timeout=10)
+        resp = httpx.get(f"{API_URL}/analytics/zero-click-actions/{student_id}", timeout=30)
         actions = resp.json().get("recommended_actions", [])
         for a in actions:
             priority = a.get("priority", "medium")
-            color = "red" if priority == "high" else "orange"
-            st.markdown(f"**[{priority.upper()}]** {a['action']}")
-            if st.button(f"Assign → {a.get('tag', 'action')}", key=a['action'][:20]):
-                st.success("Action logged for student!")
-    except:
-        st.markdown("- **High:** Targeted mini-lesson on conceptual_misunderstanding")
-        st.markdown("- **Medium:** Review prior knowledge on fractions")
+            color = "🔴" if priority == "high" else "🟠"
+            en = a.get("tag_en") or a.get("tag", "")
+            yue = a.get("tag_yue", "")
+            display = f"{en} ({yue})" if yue else en
+            st.markdown(f"{color} **[{priority.upper()}]** {a.get('action', '')}")
+            if st.button(f"Assign → {display[:30]}", key=str(a)[:30]):
+                st.success("Action logged for student! (prototype)")
+    except Exception as e:
+        st.markdown("🔴 **High:** Targeted mini-lesson on Fraction Expansion Gaps (分數擴展缺口)")
+        st.markdown("🟠 **Medium:** Review prior knowledge on fractions")
+        if st.button("Assign demo action"):
+            st.success("Action logged (demo mode)")
 
 st.divider()
-st.caption("In production this would surface class-wide heatmaps, trend lines, and LLM-generated intervention plans.")
+st.caption("HK bilingual prototype • In production: class-wide heatmaps, trend lines, LLM-generated plans. All tags have name_en + name_yue.")
